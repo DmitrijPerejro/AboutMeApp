@@ -10,7 +10,7 @@ import UIKit
 let secretLogin = "root"
 let secretPassword = "123"
 
-final class ViewController: UIViewController {
+final class LoginViewController: UIViewController {
     enum FieldType {
         case login
         case password
@@ -22,29 +22,28 @@ final class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
     }
-
-    @IBAction func signInButtonAction() {
-        // я не знаю на сколько тут ок guard использовать
-        // Возможно лучше бы сделать проще без них
-        /*
-            if isLoginValid(loginTextField.text ?? "") || isPasswordValig(passwordTextField.text ?? "") {
-                onInvalidSignIn()
-                return
-            }
-         */
-        
-        guard isLoginValid(loginTextField.text ?? "") else {
-            onInvalidSignIn()
-            return
-        }
-        
-        guard isPasswordValig(passwordTextField.text ?? "") else {
-            onInvalidSignIn()
-            return
-        }
-        
-        onSignIn()
+    
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesBegan(touches, with: event)
+        view.endEditing(true) // Скрывает клавиатуру
     }
+    
+    override func shouldPerformSegue(withIdentifier identifier: String, sender: Any?) -> Bool {
+        guard
+            isLoginValid(loginTextField.text ?? ""),
+            isPasswordValid(passwordTextField.text ?? "") else {
+                onInvalidSignIn()
+                return false
+        }
+        
+        return true
+    }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        let welcomeVC = segue.destination as? WelcomeViewController
+        welcomeVC?.login = loginTextField.text
+    }
+        
     
     @IBAction func forgotLoginAction() {
         onForgot(.login)
@@ -54,22 +53,24 @@ final class ViewController: UIViewController {
         onForgot(.password)
     }
     
-    private func onSignIn() {
-        
+    @IBAction func unwind(_ segue: UIStoryboardSegue) {
+        loginTextField.text = ""
+        passwordTextField.text = ""
     }
-    
     
     private func isLoginValid(_ value: String) -> Bool {
         secretLogin == value
     }
     
-    private func isPasswordValig(_ value: String) -> Bool {
+    private func isPasswordValid(_ value: String) -> Bool {
         secretPassword == value
     }
     
     private func onInvalidSignIn() {
         let alert = UIAlertController(title: "Ой :(", message: "Пароль или логин неверны", preferredStyle: .alert)
-        let action = UIAlertAction(title: "Попробовать еще раз", style: .cancel)
+        let action = UIAlertAction(title: "Попробовать еще раз", style: .cancel) { _ in
+            self.passwordTextField.text = ""
+        }
         alert.addAction(action)
         present(alert, animated: true)
     }
