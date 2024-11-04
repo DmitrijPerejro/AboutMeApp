@@ -7,8 +7,6 @@
 
 import UIKit
 
-let secretLogin = "root"
-let secretPassword = "123"
 
 final class LoginViewController: UIViewController {
     enum FieldType {
@@ -18,6 +16,9 @@ final class LoginViewController: UIViewController {
     
     @IBOutlet weak var loginTextField: UITextField!
     @IBOutlet weak var passwordTextField: UITextField!
+    
+    private let secretLogin = "root"
+    private let secretPassword = "123"
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -29,9 +30,12 @@ final class LoginViewController: UIViewController {
     }
     
     override func shouldPerformSegue(withIdentifier identifier: String, sender: Any?) -> Bool {
+        let compareLogin = loginTextField.text ?? ""
+        let comparePassword = passwordTextField.text ?? ""
+        
         guard
-            isLoginValid(loginTextField.text ?? ""),
-            isPasswordValid(passwordTextField.text ?? "") else {
+            isEqualValue(compareLogin, secretLogin),
+            isEqualValue(comparePassword, secretPassword) else {
                 onInvalidSignIn()
                 return false
         }
@@ -58,12 +62,8 @@ final class LoginViewController: UIViewController {
         passwordTextField.text = ""
     }
     
-    private func isLoginValid(_ value: String) -> Bool {
-        secretLogin == value
-    }
-    
-    private func isPasswordValid(_ value: String) -> Bool {
-        secretPassword == value
+    private func isEqualValue(_ first: String, _ second: String) -> Bool {
+        first == second
     }
     
     private func onInvalidSignIn() {
