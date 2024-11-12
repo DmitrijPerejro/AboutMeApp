@@ -8,13 +8,15 @@
 import UIKit
 
 final class WelcomeViewController: UIViewController {
-    var login: String!
-
     @IBOutlet weak var loginLabel: UILabel!
+    @IBOutlet weak var nameLabel: UILabel!
+    
+    var user: User!
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        loginLabel.text = login
+        loginLabel.text = user.login
+        nameLabel.text = user.person.name
     }
     
     @IBAction func logoutAction() {

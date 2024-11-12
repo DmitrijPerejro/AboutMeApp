@@ -9,6 +9,8 @@ import UIKit
 
 
 final class LoginViewController: UIViewController {
+    let user = User.fetchUser()
+    
     enum FieldType {
         case login
         case password
@@ -17,13 +19,12 @@ final class LoginViewController: UIViewController {
     @IBOutlet weak var loginTextField: UITextField!
     @IBOutlet weak var passwordTextField: UITextField!
     
-    private let secretLogin = "root"
-    private let secretPassword = "123"
-    
     override func viewDidLoad() {
         super.viewDidLoad()
+        loginTextField.text = user.login
+        passwordTextField.text = user.password
     }
-    
+            
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesBegan(touches, with: event)
         view.endEditing(true)
@@ -34,8 +35,8 @@ final class LoginViewController: UIViewController {
         let comparePassword = passwordTextField.text ?? ""
         
         guard
-            isEqualValue(compareLogin, secretLogin),
-            isEqualValue(comparePassword, secretPassword) else {
+            isEqualValue(compareLogin, user.login),
+            isEqualValue(comparePassword, user.password) else {
                 onInvalidSignIn()
                 return false
         }
@@ -44,8 +45,18 @@ final class LoginViewController: UIViewController {
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        let welcomeVC = segue.destination as? WelcomeViewController
-        welcomeVC?.login = loginTextField.text
+        let tabBarVC = segue.destination as? UITabBarController
+        
+        tabBarVC?.viewControllers?.forEach { vc in
+            if let welcomeVC = vc as? WelcomeViewController {
+                welcomeVC.user = user
+            } else if let bioVC = vc as? BioViewController {
+                bioVC.person = user.person
+            } else if let navigationController = vc as? UINavigationController,
+                      let motorcycleVC = navigationController.viewControllers.first as? MotorcycleViewController {
+                motorcycleVC.motorcycle = user.person.motorcycle
+            }
+        }
     }
         
     
@@ -67,24 +78,37 @@ final class LoginViewController: UIViewController {
     }
     
     private func onInvalidSignIn() {
-        let alert = UIAlertController(title: "Ой :(", message: "Пароль или логин неверны", preferredStyle: .alert)
-        let action = UIAlertAction(title: "Попробовать еще раз", style: .cancel) { _ in
-            self.passwordTextField.text = ""
-        }
-        alert.addAction(action)
+        let alert = makeAlert(
+            title: "Ой :(",
+            message: "Пароль или логин неверны",
+            action: UIAlertAction(
+                title: "Попробовать еще раз",
+                style: .cancel) { _ in
+                    self.passwordTextField.text = ""
+                }
+            )
         present(alert, animated: true)
     }
     
     private func onForgot(_ field: FieldType) {
         let title = field == .login ? "Логин" : "Пароль"
-        let message = field == .login ? secretLogin : secretPassword
+        let message = field == .login ? user.login : user.password
         
+        let alert = makeAlert(
+            title: title,
+            message: message,
+            action: UIAlertAction(title: "Понятно", style: .cancel)
+        )
+        present(alert, animated: true)
+    }
+    
+    private func makeAlert(title: String, message: String, action: UIAlertAction) -> UIAlertController {
         let alert = UIAlertController(
             title: title,
             message: message,
-            preferredStyle: .actionSheet)
-        let action = UIAlertAction(title: "Понятно", style: .cancel)
+            preferredStyle: .alert)
         alert.addAction(action)
-        present(alert, animated: true)
+        
+        return alert
     }
 }
